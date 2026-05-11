@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Enjoy Reels Studio</title>
+<style>
+body{margin:0;font-family:Arial,sans-serif;background:#1f1f1f;color:white}
+.app{max-width:520px;margin:auto;padding:18px}
+.card{background:#2b2b2b;border-radius:22px;padding:18px;margin:14px 0}
+.hero{background:#ff7a00;color:#111}
+button{width:100%;padding:16px;border:0;border-radius:16px;font-weight:bold;margin:8px 0}
+.orange{background:#ff7a00;color:#111}
+.green{background:#15a05f;color:white}
+.mode{background:#3a3a3a;color:white}
+.mode.active{background:#ff7a00;color:#111}
+input,textarea{width:100%;padding:12px;border-radius:12px;border:0;margin:8px 0}
+.status{background:#111;padding:12px;border-radius:14px;white-space:pre-wrap}
+.file{background:#3a3a3a;padding:10px;border-radius:12px;margin:6px 0}
+a{color:#ffb066;font-weight:bold}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card hero">
+    <h1>Enjoy Reels Studio</h1>
+    <p>Video yükle, mod seç, Reels oluştur.</p>
+  </div>
+
+  <div class="card">
+    <h2>Videolar</h2>
+    <button class="orange" onclick="document.getElementById('file').click()">+ Video Ekle</button>
+    <input id="file" type="file" style="display:none">
+    <div id="files"></div>
+  </div>
+
+  <div class="card">
+    <h2>Reels Modu</h2>
+    <button class="mode active" onclick="setMode(this,'auto')">Auto AI</button>
+    <button class="mode" onclick="setMode(this,'viral')">Viral</button>
+    <button class="mode" onclick="setMode(this,'kurumsal')">Kurumsal</button>
+    <button class="mode" onclick="setMode(this,'eglenceli')">Eğlenceli</button>
+    <button class="mode" onclick="setMode(this,'gelisim')">Gelişim</button>
+  </div>
+
+  <div class="card">
+    <h2>Hook Önerileri</h2>
+    <div id="hooks" class="status">Mod seçilince hooklar burada oluşacak.</div>
+  </div>
+
+  <div class="card">
+    <h2>Reels Açıklaması</h2>
+    <div id="caption" class="status">Açıklama burada oluşacak.</div>
+  </div>
+
+  <button class="green" onclick="createReels()">Reels Oluştur</button>
+
+  <div id="status" class="status">Hazır.</div>
+  <div id="result"></div>
+</div>
+
+<script>
+const backend = "https://enjoy-reels-backend-v2.onrender.com";
+const files = [];
+let mode = "auto";
+
+const hooks = {
+  auto: [
+    "Bugünkü dersten kısa ama güçlü bir kesit.",
+    "Çocuklar eğlenirken gelişir.",
+    "Her hareketin arkasında bir gelişim vardır."
+  ],
+  viral: [
+    "Dışarıdan oyun gibi görünüyor olabilir…",
+    "Bu sadece hareket değil.",
+    "15 saniyede bir dersin özeti."
+  ],
+  kurumsal: [
+    "Planlı eğitim böyle görünür.",
+    "Her dersin arkasında bir sistem var.",
+    "Güven veren eğitim tesadüf değildir."
+  ],
+  eglenceli: [
+    "Çocuklar burada sadece spor yapmıyor.",
+    "Eğlenirken gelişmek mümkün.",
+    "Bugünkü dersin en keyifli anları."
+  ],
+  gelisim: [
+    "Küçük adımlar büyük gelişimlerin başlangıcıdır.",
+    "Her deneme özgüveni büyütür.",
+    "Gelişim bazen oyunun içinde gizlidir."
+  ]
+};
+
+const captions = {
+  auto: "Enjoy Spor Akademisi’nde her ders, çocukların gelişimini destekleyen planlı bir sürecin parçasıdır. 🧡",
+  viral: "Dışarıdan oyun gibi görünse de her hareket çocukların denge, koordinasyon ve özgüven gelişimine katkı sağlar.",
+  kurumsal: "Enjoy Spor Akademisi’nde eğitim süreci planlı, güvenli ve çocukların gelişimine uygun şekilde ilerler.",
+  eglenceli: "Çocuklar en iyi mutlu hissettikleri ortamda öğrenir ve gelişir. Bugünkü dersten keyifli anlar 🧡",
+  gelisim: "Denge, koordinasyon, cesaret ve özgüven… Her ders çocukların gelişim yolculuğuna küçük ama değerli bir katkıdır."
+};
+
+document.getElementById("file").addEventListener("change", e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  files.push(f);
+  document.getElementById("files").innerHTML = files.map((x,i)=>
+    `<div class="file">${i+1}. ${x.name}</div>`
+  ).join("");
+  e.target.value = "";
+});
+
+function setMode(btn, selected){
+  mode = selected;
+  document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById("hooks").textContent = hooks[mode].map((h,i)=>`${i+1}. ${h}`).join("\\n");
+  document.getElementById("caption").textContent = captions[mode];
+}
+
+async function createReels(){
+  const status = document.getElementById("status");
+  const result = document.getElementById("result");
+
+  if (!files.length) {
+    status.textContent = "Önce video eklemelisin.";
+    return;
+  }
+
+  const fd = new FormData();
+  files.forEach(f => fd.append("videos", f));
+  fd.append("mode", mode);
+  fd.append("hook", hooks[mode][0]);
+  fd.append("duration", "18");
+  fd.append("cut", mode === "viral" ? "fast" : "auto");
+  fd.append("hookStyle", "minimal");
+
+  status.textContent = "Reels oluşturuluyor. Lütfen bekle...";
+  result.innerHTML = "";
+
+  try {
+    const res = await fetch(backend + "/render", { method:"POST", body:fd });
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || "Hata oluştu");
+
+    const url = backend + data.output;
+    status.textContent = "Reels hazır!";
+    result.innerHTML = `
+      <div class="card">
+        <h2>Çıktı</h2>
+        <video src="${url}" controls style="width:100%;border-radius:18px"></video>
+        <p><a href="${url}" download>Videoyu indir</a></p>
+      </div>
+    `;
+  } catch(err) {
+    status.textContent = "Hata: " + err.message;
+  }
+}
+
+setMode(document.querySelector(".mode.active"), "auto");
+</script>
+</body>
+</html>

@@ -150,17 +150,7 @@ async function createReels(){
     if (!res.ok) throw new Error(data.error || "Hata oluştu");
 
     const url = backend + data.output;
-    const scenes = document.getElementById("scenes");
-
-if (data.scenePlan) {
-  scenes.innerHTML = data.scenePlan.map((s, i) => `
-    <div class="file">
-      Sahne ${i + 1}<br>
-      Video: ${s.originalName}<br>
-      Başlangıç: ${s.selectedStart}s<br>
-      Süre: ${s.selectedDuration}s
-    </div>
-  `).join("");
+    
 }
 }
     status.textContent = "Reels hazır!";

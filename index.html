@@ -9,12 +9,11 @@ body{margin:0;font-family:Arial,sans-serif;background:#1f1f1f;color:white}
 .app{max-width:520px;margin:auto;padding:18px}
 .card{background:#2b2b2b;border-radius:22px;padding:18px;margin:14px 0}
 .hero{background:#ff7a00;color:#111}
-button{width:100%;padding:16px;border:0;border-radius:16px;font-weight:bold;margin:8px 0}
+button{width:100%;padding:16px;border:0;border-radius:16px;font-weight:bold;margin:8px 0;font-size:15px}
 .orange{background:#ff7a00;color:#111}
 .green{background:#15a05f;color:white}
 .mode{background:#3a3a3a;color:white}
 .mode.active{background:#ff7a00;color:#111}
-input,textarea{width:100%;padding:12px;border-radius:12px;border:0;margin:8px 0}
 .status{background:#111;padding:12px;border-radius:14px;white-space:pre-wrap}
 .file{background:#3a3a3a;padding:10px;border-radius:12px;margin:6px 0}
 a{color:#ffb066;font-weight:bold}
@@ -33,12 +32,7 @@ a{color:#ffb066;font-weight:bold}
     <input id="file" type="file" style="display:none">
     <div id="files"></div>
   </div>
-<div class="card">
-  <h2>Sahne Adayları</h2>
-  <div id="scenes" class="status">
-    Video yükleyince sahne adayları burada görünecek.
-  </div>
-</div>
+
   <div class="card">
     <h2>Reels Modu</h2>
     <button class="mode active" onclick="setMode(this,'auto')">Auto AI</button>
@@ -50,12 +44,12 @@ a{color:#ffb066;font-weight:bold}
 
   <div class="card">
     <h2>Hook Önerileri</h2>
-    <div id="hooks" class="status">Mod seçilince hooklar burada oluşacak.</div>
+    <div id="hooks" class="status"></div>
   </div>
 
   <div class="card">
     <h2>Reels Açıklaması</h2>
-    <div id="caption" class="status">Açıklama burada oluşacak.</div>
+    <div id="caption" class="status"></div>
   </div>
 
   <button class="green" onclick="createReels()">Reels Oluştur</button>
@@ -105,25 +99,35 @@ const captions = {
   gelisim: "Denge, koordinasyon, cesaret ve özgüven… Her ders çocukların gelişim yolculuğuna küçük ama değerli bir katkıdır."
 };
 
-document.getElementById("file").addEventListener("change", e => {
+document.getElementById("file").addEventListener("change", function(e) {
   const f = e.target.files[0];
   if (!f) return;
+
   files.push(f);
-  document.getElementById("files").innerHTML = files.map((x,i)=>
-    `<div class="file">${i+1}. ${x.name}</div>`
-  ).join("");
+
+  document.getElementById("files").innerHTML = files.map(function(x,i) {
+    return '<div class="file">' + (i+1) + '. ' + x.name + '</div>';
+  }).join("");
+
+  document.getElementById("status").textContent = files.length + " video eklendi.";
   e.target.value = "";
 });
 
-function setMode(btn, selected){
+function setMode(btn, selected) {
   mode = selected;
-  document.querySelectorAll(".mode").forEach(b=>b.classList.remove("active"));
+  document.querySelectorAll(".mode").forEach(function(b) {
+    b.classList.remove("active");
+  });
   btn.classList.add("active");
-  document.getElementById("hooks").textContent = hooks[mode].map((h,i)=>`${i+1}. ${h}`).join("\\n");
+
+  document.getElementById("hooks").textContent = hooks[mode].map(function(h,i) {
+    return (i+1) + ". " + h;
+  }).join("\n");
+
   document.getElementById("caption").textContent = captions[mode];
 }
 
-async function createReels(){
+async function createReels() {
   const status = document.getElementById("status");
   const result = document.getElementById("result");
 
@@ -133,7 +137,10 @@ async function createReels(){
   }
 
   const fd = new FormData();
-  files.forEach(f => fd.append("videos", f));
+  files.forEach(function(f) {
+    fd.append("videos", f);
+  });
+
   fd.append("mode", mode);
   fd.append("hook", hooks[mode][0]);
   fd.append("duration", "18");
@@ -144,24 +151,29 @@ async function createReels(){
   result.innerHTML = "";
 
   try {
-    const res = await fetch(backend + "/render", { method:"POST", body:fd });
+    const res = await fetch(backend + "/render", {
+      method: "POST",
+      body: fd
+    });
+
     const data = await res.json();
 
-    if (!res.ok) throw new Error(data.error || "Hata oluştu");
+    if (!res.ok) {
+      throw new Error(data.error || "Hata oluştu");
+    }
 
     const url = backend + data.output;
-    
-}
-}
+
     status.textContent = "Reels hazır!";
-    result.innerHTML = `
-      <div class="card">
-        <h2>Çıktı</h2>
-        <video src="${url}" controls style="width:100%;border-radius:18px"></video>
-        <p><a href="${url}" download>Videoyu indir</a></p>
-      </div>
-    `;
-  } catch(err) {
+
+    result.innerHTML =
+      '<div class="card">' +
+      '<h2>Çıktı</h2>' +
+      '<video src="' + url + '" controls style="width:100%;border-radius:18px"></video>' +
+      '<p><a href="' + url + '" download>Videoyu indir</a></p>' +
+      '</div>';
+
+  } catch (err) {
     status.textContent = "Hata: " + err.message;
   }
 }

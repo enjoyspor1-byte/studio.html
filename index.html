@@ -3,182 +3,180 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Enjoy Reels Studio</title>
+<title>Enjoy Content Brain</title>
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#1f1f1f;color:white}
-.app{max-width:520px;margin:auto;padding:18px}
+.app{max-width:760px;margin:auto;padding:18px}
 .card{background:#2b2b2b;border-radius:22px;padding:18px;margin:14px 0}
 .hero{background:#ff7a00;color:#111}
-button{width:100%;padding:16px;border:0;border-radius:16px;font-weight:bold;margin:8px 0;font-size:15px}
-.orange{background:#ff7a00;color:#111}
-.green{background:#15a05f;color:white}
-.mode{background:#3a3a3a;color:white}
-.mode.active{background:#ff7a00;color:#111}
-.status{background:#111;padding:12px;border-radius:14px;white-space:pre-wrap}
-.file{background:#3a3a3a;padding:10px;border-radius:12px;margin:6px 0}
-a{color:#ffb066;font-weight:bold}
+button{width:100%;padding:15px;border:0;border-radius:16px;font-weight:bold;margin:7px 0}
+.green{background:#15a05f;color:white}.dark{background:#3a3a3a;color:white}
+.dark.active{background:#ff7a00;color:#111}
+select,textarea{width:100%;padding:13px;border:0;border-radius:14px;margin:8px 0;background:#171717;color:white;box-sizing:border-box}
+.idea{background:#111;border-radius:18px;padding:15px;margin:12px 0;border:1px solid #3a3a3a}
+.tag{display:inline-block;background:#ff7a00;color:#111;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:bold}
+.copy{background:#444;color:white}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:620px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
 <div class="app">
-  <div class="card hero">
-    <h1>Enjoy Reels Studio</h1>
-    <p>Video yükle, mod seç, Reels oluştur.</p>
-  </div>
+<div class="card hero">
+<h1>Enjoy Content Brain</h1>
+<p>Bugün ne paylaşacağını düşünme. Sistem sana reels fikri, hook, açıklama, story ve akış üretsin.</p>
+</div>
 
-  <div class="card">
-    <h2>Videolar</h2>
-    <button class="orange" onclick="document.getElementById('file').click()">+ Video Ekle</button>
-    <input id="file" type="file" style="display:none">
-    <div id="files"></div>
-  </div>
+<div class="card">
+<h2>İçerik Bilgisi</h2>
+<label>İçerik Tipi</label>
+<select id="topic">
+<option>Karışık ders videoları</option>
+<option>Parkur</option>
+<option>Denge çalışması</option>
+<option>Cimnastik</option>
+<option>Hareket eğitimi</option>
+<option>Grup çalışması</option>
+<option>Eğlenceli anlar</option>
+<option>Özgüven gelişimi</option>
+<option>Koordinasyon</option>
+<option>Başarı anı</option>
+</select>
 
-  <div class="card">
-    <h2>Reels Modu</h2>
-    <button class="mode active" onclick="setMode(this,'auto')">Auto AI</button>
-    <button class="mode" onclick="setMode(this,'viral')">Viral</button>
-    <button class="mode" onclick="setMode(this,'kurumsal')">Kurumsal</button>
-    <button class="mode" onclick="setMode(this,'eglenceli')">Eğlenceli</button>
-    <button class="mode" onclick="setMode(this,'gelisim')">Gelişim</button>
-  </div>
+<label>Yaş Grubu</label>
+<select id="age">
+<option>Karışık grup</option>
+<option>3–4 yaş</option>
+<option>4–5 yaş</option>
+<option>5–6 yaş</option>
+<option>6–8 yaş</option>
+</select>
 
-  <div class="card">
-    <h2>Hook Önerileri</h2>
-    <div id="hooks" class="status"></div>
-  </div>
+<label>Ek Not</label>
+<textarea id="note" rows="4" placeholder="Örn: Takla, parkur, gülen çocuklar ve eğlenceli ders görüntüleri var."></textarea>
+</div>
 
-  <div class="card">
-    <h2>Reels Açıklaması</h2>
-    <div id="caption" class="status"></div>
-  </div>
+<div class="card">
+<h2>Ton Seç</h2>
+<div class="grid">
+<button class="dark active" onclick="setTone(this,'viral')">Viral</button>
+<button class="dark" onclick="setTone(this,'kurumsal')">Kurumsal</button>
+<button class="dark" onclick="setTone(this,'samimi')">Samimi</button>
+<button class="dark" onclick="setTone(this,'eglenceli')">Eğlenceli</button>
+<button class="dark" onclick="setTone(this,'gelisim')">Gelişim</button>
+<button class="dark" onclick="setTone(this,'duygusal')">Duygusal</button>
+</div>
+<button class="green" onclick="generateIdeas()">3 Reels Fikri Üret</button>
+</div>
 
-  <button class="green" onclick="createReels()">Reels Oluştur</button>
-
-  <div id="status" class="status">Hazır.</div>
-  <div id="result"></div>
+<div class="card">
+<h2>Çıktılar</h2>
+<div id="output">Hazır.</div>
+</div>
 </div>
 
 <script>
-const backend = "https://enjoy-reels-backend-v2.onrender.com";
-const files = [];
-let mode = "auto";
+let tone="viral";
 
-const hooks = {
-  auto: [
-    "Bugünkü dersten kısa ama güçlü bir kesit.",
-    "Çocuklar eğlenirken gelişir.",
-    "Her hareketin arkasında bir gelişim vardır."
-  ],
-  viral: [
-    "Dışarıdan oyun gibi görünüyor olabilir…",
-    "Bu sadece hareket değil.",
-    "15 saniyede bir dersin özeti."
-  ],
-  kurumsal: [
-    "Planlı eğitim böyle görünür.",
-    "Her dersin arkasında bir sistem var.",
-    "Güven veren eğitim tesadüf değildir."
-  ],
-  eglenceli: [
-    "Çocuklar burada sadece spor yapmıyor.",
-    "Eğlenirken gelişmek mümkün.",
-    "Bugünkü dersin en keyifli anları."
-  ],
-  gelisim: [
-    "Küçük adımlar büyük gelişimlerin başlangıcıdır.",
-    "Her deneme özgüveni büyütür.",
-    "Gelişim bazen oyunun içinde gizlidir."
-  ]
+function setTone(btn,t){
+tone=t;
+document.querySelectorAll(".dark").forEach(b=>b.classList.remove("active"));
+btn.classList.add("active");
+}
+
+const hooks={
+viral:[
+"Bu görüntüler sadece eğlence değil.",
+"Dışarıdan oyun gibi görünüyor olabilir…",
+"15 saniyede bir dersin özeti.",
+"Çocuklar burada sadece hareket etmiyor.",
+"Bunu sadece oyun sananlar yanılıyor."
+],
+kurumsal:[
+"Her hareket planlı bir gelişimin parçasıdır.",
+"Güven veren eğitim tesadüf değildir.",
+"Bir dersin arkasında sistem vardır.",
+"Planlı eğitim böyle görünür.",
+"Spor eğitimi sadece hareketten ibaret değildir."
+],
+samimi:[
+"Bazı çocuklar dersten çıkmak istemiyor 😄",
+"Mutlu oldukları yerde gelişiyorlar.",
+"Bugünkü dersin en tatlı anları.",
+"Çocukların yüzündeki ifade her şeyi anlatıyor.",
+"Burada en güzel şey çocukların isteyerek gelmesi."
+],
+eglenceli:[
+"Eğlenirken gelişmek mümkün.",
+"Ders dediğin biraz da böyle keyifli olmalı.",
+"Bugünkü enerjimiz biraz yüksek 😄",
+"Oyun gibi görünen her şeyin içinde gelişim var.",
+"Kahkaha, hareket ve gelişim aynı derste buluştu."
+],
+gelisim:[
+"Küçük adımlar büyük gelişimlerin başlangıcıdır.",
+"Her deneme özgüveni büyütür.",
+"Gelişim bazen oyunun içinde gizlidir.",
+"Bugünkü küçük başarı, yarının büyük adımıdır.",
+"Denge, koordinasyon ve cesaret birlikte gelişir."
+],
+duygusal:[
+"Her çocuk kendi ritminde gelişir.",
+"Gelişim bir yarış değil, keşif yolculuğudur.",
+"Küçük bir cesaret, büyük bir özgüven başlatabilir.",
+"Bir çocuğun başarma anı her şeye değer.",
+"Her adım kıymetlidir."
+]
 };
 
-const captions = {
-  auto: "Enjoy Spor Akademisi’nde her ders, çocukların gelişimini destekleyen planlı bir sürecin parçasıdır. 🧡",
-  viral: "Dışarıdan oyun gibi görünse de her hareket çocukların denge, koordinasyon ve özgüven gelişimine katkı sağlar.",
-  kurumsal: "Enjoy Spor Akademisi’nde eğitim süreci planlı, güvenli ve çocukların gelişimine uygun şekilde ilerler.",
-  eglenceli: "Çocuklar en iyi mutlu hissettikleri ortamda öğrenir ve gelişir. Bugünkü dersten keyifli anlar 🧡",
-  gelisim: "Denge, koordinasyon, cesaret ve özgüven… Her ders çocukların gelişim yolculuğuna küçük ama değerli bir katkıdır."
-};
+function history(){return JSON.parse(localStorage.getItem("hookHistory")||"[]")}
+function save(h){localStorage.setItem("hookHistory",JSON.stringify([...h,...history()].slice(0,40)))}
+function pick(){
+let old=history();
+let pool=hooks[tone].filter(x=>!old.includes(x));
+if(pool.length<3) pool=hooks[tone];
+return pool.sort(()=>Math.random()-.5).slice(0,3);
+}
 
-document.getElementById("file").addEventListener("change", function(e) {
-  const f = e.target.files[0];
-  if (!f) return;
+function caption(topic,age){
+if(tone==="viral") return `${topic} görüntüleri dışarıdan sadece eğlenceli anlar gibi görünebilir; ancak bu çalışmalar çocukların denge, koordinasyon, cesaret ve özgüven gelişimini destekler. 🧡`;
+if(tone==="kurumsal") return `Enjoy Spor Akademisi’nde ${topic.toLowerCase()} çalışmaları, çocukların yaş grubuna uygun ve planlı bir gelişim süreciyle ilerler.`;
+if(tone==="samimi") return `Çocuklar kendilerini mutlu ve güvende hissettikleri ortamda daha istekli öğrenir. Bugünkü dersten sıcak bir kesit 🧡`;
+if(tone==="eglenceli") return `Eğlence, hareket ve gelişim aynı derste buluştu. Çocuklar oynarken, denerken ve hareket ederken gelişmeye devam ediyor.`;
+if(tone==="gelisim") return `Her deneme, çocukların beden farkındalığını ve özgüvenini biraz daha güçlendirir. ${age} için hazırlanan çalışmalarla gelişimi destekliyoruz.`;
+return `Gelişim bir yarış değil, her çocuğun kendi ritminde ilerlediği kıymetli bir yolculuktur. Her küçük adım değerlidir. 🧡`;
+}
 
-  files.push(f);
+function flow(){
+if(tone==="kurumsal") return ["Salon/ders düzeni","Öğretmen yönlendirmesi","Kontrollü hareket","Deneme anı","Güven veren kapanış"];
+if(tone==="gelisim") return ["Deneme","Destek","Başarma sahnesi","Gülümseme","Kapanış"];
+if(tone==="samimi"||tone==="eglenceli") return ["Gülümseyen çocuk","Hareketli sahne","Grup etkileşimi","Doğal an","Mutlu kapanış"];
+return ["Hızlı giriş","Parkur/denge/takla","Başarma anı","Gülümseme","Kısa kapanış"];
+}
 
-  document.getElementById("files").innerHTML = files.map(function(x,i) {
-    return '<div class="file">' + (i+1) + '. ' + x.name + '</div>';
-  }).join("");
-
-  document.getElementById("status").textContent = files.length + " video eklendi.";
-  e.target.value = "";
+function generateIdeas(){
+const topic=document.getElementById("topic").value;
+const age=document.getElementById("age").value;
+const selected=pick();
+save(selected);
+let html="";
+selected.forEach((h,i)=>{
+html+=`
+<div class="idea">
+<span class="tag">Fikir ${i+1} - ${tone.toUpperCase()}</span>
+<h3>${topic} için reels fikri</h3>
+<b>Hook:</b><p>${h}</p>
+<b>Kapak Yazısı:</b><p>${h.split(" ").slice(0,5).join(" ")}</p>
+<b>Reels Açıklaması:</b><p>${caption(topic,age)}</p>
+<b>Story:</b><p>Bugünkü dersten kısa bir kesit 🧡<br>${h}</p>
+<b>Video Akışı:</b><p>${flow().map((x,n)=>(n+1)+". "+x).join("<br>")}</p>
+<button class="copy" onclick="navigator.clipboard.writeText(this.parentElement.innerText)">Bu fikri kopyala</button>
+</div>`;
 });
-
-function setMode(btn, selected) {
-  mode = selected;
-  document.querySelectorAll(".mode").forEach(function(b) {
-    b.classList.remove("active");
-  });
-  btn.classList.add("active");
-
-  document.getElementById("hooks").textContent = hooks[mode].map(function(h,i) {
-    return (i+1) + ". " + h;
-  }).join("\n");
-
-  document.getElementById("caption").textContent = captions[mode];
+document.getElementById("output").innerHTML=html;
 }
 
-async function createReels() {
-  const status = document.getElementById("status");
-  const result = document.getElementById("result");
-
-  if (!files.length) {
-    status.textContent = "Önce video eklemelisin.";
-    return;
-  }
-
-  const fd = new FormData();
-  files.forEach(function(f) {
-    fd.append("videos", f);
-  });
-
-  fd.append("mode", mode);
-  fd.append("hook", hooks[mode][0]);
-  fd.append("duration", "18");
-  fd.append("cut", mode === "viral" ? "fast" : "auto");
-  fd.append("hookStyle", "minimal");
-
-  status.textContent = "Reels oluşturuluyor. Lütfen bekle...";
-  result.innerHTML = "";
-
-  try {
-    const res = await fetch(backend + "/render", {
-      method: "POST",
-      body: fd
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      throw new Error(data.error || "Hata oluştu");
-    }
-
-    const url = backend + data.output;
-
-    status.textContent = "Reels hazır!";
-
-    result.innerHTML =
-      '<div class="card">' +
-      '<h2>Çıktı</h2>' +
-      '<video src="' + url + '" controls style="width:100%;border-radius:18px"></video>' +
-      '<p><a href="' + url + '" download>Videoyu indir</a></p>' +
-      '</div>';
-
-  } catch (err) {
-    status.textContent = "Hata: " + err.message;
-  }
-}
-
-setMode(document.querySelector(".mode.active"), "auto");
+generateIdeas();
 </script>
 </body>
 </html>
